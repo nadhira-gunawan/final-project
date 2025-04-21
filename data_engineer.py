@@ -20,12 +20,12 @@ def fetch_from_postgres():
     '''
     Connects to the PostgreSQL database running in the Docker container.
     The connection string functions as a placeholder and should be replaced with the actual connection string.
-    Fetches the data from the table 'table_m3' and saves it as a CSV file.
+    Fetches the data from the table 'final_project' and saves it as a CSV file.
     '''
 
     conn_string = "dbname='postgres' user='airflow' host='postgres' password='airflow' port='5432'"
     conn = db.connect(conn_string)
-    df = pd.read_sql("SELECT * FROM table_m3", conn)
+    df = pd.read_sql("SELECT * FROM final_project", conn)
     df.to_csv('/opt/airflow/dags/raw_data.csv', index=False)
 
 def clean_data():
@@ -73,7 +73,7 @@ def post_to_elasticsearch():
     The connection string functions as a placeholder and should be replaced with the actual connection string.
     Waits for the Elasticsearch instance to become available before proceeding into the next step.
     Reads the cleaned data from the CSV file and indexes it into Elasticsearch.
-    The data is indexed into the 'bike_sales' index, with each record being identified by its unique transaction_id so that there will be no duplicates.
+    The data is indexed into the 'final_project' index, with each record being identified by its unique transaction_id so that there will be no duplicates.
     '''
     es = Elasticsearch('http://elasticsearch:9200')
 
