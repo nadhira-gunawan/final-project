@@ -20,7 +20,7 @@ def fetch_from_postgres():
     '''
     Connects to the PostgreSQL database running in the Docker container.
     The connection string functions as a placeholder and should be replaced with the actual connection string.
-    Fetches the data from the table 'final_project' and saves it as a CSV file.
+    Fetches the data from the table 'table_m3' and saves it as a CSV file.
     '''
 
     conn_string = "dbname='postgres' user='airflow' host='postgres' password='airflow' port='5432'"
@@ -51,14 +51,11 @@ def clean_data():
     df['transaction_date'] = pd.to_datetime(df['transaction_date'], format='%Y-%m-%d')
     df['transaction_date_update'] = df['transaction_date'].dt.strftime('%b-%Y')  # e.g., 'Jan-2023'
 
-    # Create new column `profit` from `revenue` and `ad_spend`
-    df['profit'] = df['revenue'] - df['ad_spend']
+    # Create new column `roi` from `revenue` and `ad_spend`
+    df['roi'] = ((df['revenue'] - df['ad_spend']) / df['ad_spend']) * 100  # ROI in percentage
 
-    # Create new column `roi` from `profit` and `ad_spend`
-    df['roi'] = (df['profit'] / df['ad_spend']) * 100  # ROI in percentage
-
-    # Drop `transaction_date` columns
-    df.drop(columns=['transaction_date'], inplace=True, errors='ignore')
+    # Drop unnecesarry columns
+    df.drop(columns=['transaction_id', 'customer_id' , 'product_id', 'transaction_date'], inplace=True, errors='ignore')
 
     # Drop duplicates and missing values
     df.drop_duplicates(inplace=True)
@@ -73,7 +70,7 @@ def post_to_elasticsearch():
     The connection string functions as a placeholder and should be replaced with the actual connection string.
     Waits for the Elasticsearch instance to become available before proceeding into the next step.
     Reads the cleaned data from the CSV file and indexes it into Elasticsearch.
-    The data is indexed into the 'final_project' index, with each record being identified by its unique transaction_id so that there will be no duplicates.
+    The data is indexed into the 'bike_sales' index, with each record being identified by its unique transaction_id so that there will be no duplicates.
     '''
     es = Elasticsearch('http://elasticsearch:9200')
 
@@ -102,7 +99,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='P2M3_nadhira_gunawan_DAG', # Identifier for the DAG
+    dag_id='final_project', # Identifier for the DAG
     default_args=default_args, # Default parameter for the DAG
     start_date=datetime(2024, 11, 1, 9, 10) - timedelta(hours=7), # Start date of the DAG, which is 11 November 2024 at 09:10 AM WIB(GMT+7)
     schedule_interval='10-30/10 9 * * 6',  # Every Saturday from 09:10 to 09:30, every 10 min
